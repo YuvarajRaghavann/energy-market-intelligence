@@ -1,162 +1,142 @@
-# Energy Market Intelligence & Forecasting Platform
+# ⚡ Energy Market Intelligence & Forecasting Platform
 
-A portfolio-grade energy-data analytics project designed around the workflow of a data/research analyst:
+An end-to-end **Python + SQL + machine-learning energy analytics project** that turns public energy data into validated analytical datasets, model comparisons, forecasts, and interactive dashboards.
 
-**collect → clean → validate → model → analyze → forecast → communicate**
+**Workflow:** `Collect → Clean → Validate → Analyse → Forecast → Communicate`
 
-The project uses the public **Our World in Data Energy** dataset as its primary demonstration source. The dataset is updated regularly and combines energy indicators sourced from organizations including the Energy Institute, U.S. EIA and Ember. The project does **not** use Rystad proprietary data.
+> Portfolio project using public data. No proprietary company data is used.
 
-## Why this project exists
+## Dashboard
 
-This project is intentionally aligned to the skills demonstrated in the Rystad Energy Analyst (Data & Research) job description:
+### Market Overview
+![Market Overview](docs/images/dashboard-overview.png)
 
-- Python and SQL
-- data collection, cleaning and validation
-- structured database design
-- Python automation
-- statistical analysis and quantitative methods
-- machine learning and forecasting
-- AI-enabled research workflows
-- analytical outputs and dashboards
-- methodology, assumptions and limitations
+### Energy Mix
+![Energy Mix](docs/images/energy-mix.png)
 
-It is a portfolio project, not a claim of professional energy-market research experience.
+### Forecast & Model Evaluation
+![Forecast Model Evaluation](docs/images/forecast-model-evaluation.png)
+
+### Data Quality
+![Data Quality](docs/images/data-quality.png)
+
+## What it demonstrates
+
+- **Python:** ingestion, transformation, analysis, automation and reusable pipeline modules
+- **SQL / PostgreSQL:** relational schema design for energy facts, geography, metrics and forecasts
+- **Data quality:** duplicate-key, missingness, negative-value, annual-gap and outlier checks
+- **Analytics:** YoY growth, rolling averages, CAGR and energy-mix analysis
+- **Machine learning:** baseline, Linear Regression and Random Forest comparison
+- **Model validation:** 4-fold time-series cross-validation using MAE and RMSE
+- **Dashboarding:** interactive Streamlit analytics and Power BI-ready exports
+- **Research communication:** methodology, source traceability and limitations
+
+## Verified local run
+
+The current local run used the public Our World in Data Energy dataset and produced:
+
+| Metric | Result |
+|---|---:|
+| Curated records | **23,377** |
+| Source columns | **131** |
+| Duplicate country-year rows | **0** |
+| Data quality check | **PASS** |
+| Forecast target | **India electricity demand** |
+| Validation folds | **4** |
+| Model selected by mean CV MAE | **Linear Regression** |
+
+### Model comparison
+
+| Model | Mean CV MAE (TWh) | Mean CV RMSE (TWh) |
+|---|---:|---:|
+| Linear Regression | **63.37** | **73.33** |
+| Naive Last Value | 200.72 | 222.28 |
+| Random Forest | 234.11 | 246.34 |
+
+The metrics above are **error metrics**, not accuracy percentages.
+
+### Forecast generated in the current run
+
+| Year | Prediction (TWh) | Model |
+|---|---:|---|
+| 2026 | 2141.80 | Linear Regression |
+| 2027 | 2220.96 | Linear Regression |
+| 2028 | 2299.47 | Linear Regression |
+
+These are outputs of the current research prototype and should not be interpreted as investment, commodity-price, or market-advice forecasts.
 
 ## Architecture
 
 ```text
-Public energy dataset
-        │
-        ▼
-src/ingest.py
-        │
-        ▼
-Raw CSV
-        │
-        ▼
-src/quality.py ─────► quality_report.json
-        │
-        ▼
-src/transform.py
-        │
-        ├──────────────► curated_energy.csv
-        │
-        ▼
-src/analytics.py
-        │
-        ├──────────────► market_metrics.csv
-        │
-        ▼
-src/forecast.py
-        │
-        ├──────────────► forecast.csv
-        │
-        ▼
-Streamlit dashboard / Power BI
+                 Public Energy Dataset
+                          │
+                          ▼
+                   Data Ingestion
+                          │
+                          ▼
+                Cleaning & Validation
+                          │
+                          ▼
+                   Transformation
+                          │
+                ┌─────────┴─────────┐
+                ▼                   ▼
+          Market Analytics      SQL / PostgreSQL
+                │                   │
+                └─────────┬─────────┘
+                          ▼
+                  Forecasting Models
+                          │
+                          ▼
+                    Model Evaluation
+                          │
+                  ┌───────┴───────┐
+                  ▼               ▼
+              Streamlit        Power BI
+               Dashboard         Export
 ```
 
-## Data source
+## Project structure
 
-Primary source:
+```text
+energy-market-intelligence/
+├── app.py
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── .env.example
+├── IMPLEMENTATION_CHECKLIST.md
+├── src/
+│   ├── ingest.py
+│   ├── quality.py
+│   ├── transform.py
+│   ├── analytics.py
+│   ├── forecast.py
+│   └── pipeline.py
+├── sql/
+│   └── schema.sql
+├── scripts/
+│   └── load_postgres.py
+├── tests/
+│   └── test_pipeline.py
+├── docs/
+│   ├── data_sources.md
+│   ├── interview_guide.md
+│   ├── resume_bullets.md
+│   └── images/
+└── powerbi/
+    └── README.md
+```
 
-- Our World in Data, Energy dataset: https://owid-public.owid.io/data/energy/owid-energy-data.csv
-- OWID repository and codebook: https://github.com/owid/energy-data
+## Run locally
 
-The OWID dataset is one row per location and year and includes metrics for energy consumption, electricity, energy mix and related indicators. OWID documents the underlying sources and processing methodology in its repository and codebook.
-
-Additional source for methodology/background:
-
-- IEA World Energy Statistics: https://www.iea.org/data-and-statistics/data-product/world-energy-statistics
-
-Use source pages as the authoritative reference for definitions, units and licensing before publishing derived work.
-
-## Research questions
-
-The dashboard and analysis are designed to answer questions such as:
-
-1. How has electricity demand changed over time by country?
-2. How have oil, gas, coal and renewable energy indicators changed?
-3. How does the electricity mix differ across regions?
-4. What are the recent growth rates and trend changes?
-5. Can a simple time-series ML model provide a transparent short-horizon forecast?
-6. Where does the input data require quality review before interpretation?
-
-## Features
-
-### 1. Data ingestion
-Downloads the latest OWID energy CSV at runtime and stores a reproducible local raw copy.
-
-### 2. Data-quality checks
-Checks:
-- duplicate country-year keys
-- missingness
-- negative values in non-negative energy indicators
-- suspicious gaps in annual observations
-- potential statistical outliers using IQR
-- schema/column presence
-
-Potential outliers are **flagged, not silently deleted**.
-
-### 3. Data transformation
-Creates a focused analytical dataset with:
-- geography
-- population and GDP
-- primary energy consumption
-- electricity demand/generation
-- fossil and renewable shares
-- oil/gas/coal production and consumption
-- selected low-carbon generation indicators
-
-### 4. Market analytics
-Calculates:
-- year-over-year growth
-- rolling 3-year averages
-- 5-year CAGR when enough history exists
-- fossil vs renewable electricity share comparison
-- production/consumption indicators
-
-### 5. Forecasting
-For a selected country and indicator:
-- Naive last-value baseline
-- linear trend baseline
-- Random Forest regression using lagged values and rolling features
-- time-series cross-validation
-- MAE and RMSE comparison
-- recursive short-horizon forecast
-
-The project prioritizes transparency over pretending that a small annual dataset can produce a production-grade market forecast.
-
-### 6. Dashboard
-The Streamlit app provides:
-- country selection
-- indicator selection
-- historical trend charts
-- growth metrics
-- electricity mix view
-- forecast view
-- data-quality summary
-
-### 7. SQL layer
-Includes PostgreSQL DDL for:
-- `dim_geography`
-- `fact_energy_annual`
-- `fact_market_metrics`
-- `fact_forecast`
-- `fact_data_quality`
-
-## Quick start
-
-### 1. Create environment
+### 1. Create a virtual environment
 
 ```bash
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
 ```
 
-### 2. Install
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -168,76 +148,103 @@ pip install -r requirements.txt
 python -m src.pipeline --country "India" --indicator electricity_demand --horizon 3
 ```
 
-This creates:
+### 4. Run tests
 
-```text
-data/raw/owid-energy-data.csv
-data/processed/curated_energy.csv
-data/processed/market_metrics.csv
-data/processed/forecast.csv
-data/quality/quality_report.json
+```bash
+python -m pytest
 ```
 
-### 4. Launch dashboard
+### 5. Launch the dashboard
 
 ```bash
 streamlit run app.py
 ```
 
-### 5. Optional PostgreSQL load
+## Data source
 
-Create a database, set environment variables from `.env.example`, then:
+Primary dataset:
 
-```bash
-python scripts/load_postgres.py
-```
+**Our World in Data – Energy dataset**
 
-The SQL schema is in `sql/schema.sql`.
+Repository:
+https://github.com/owid/energy-data
 
-## Reproducibility
+OWID documents energy indicators by location and year and provides source/definition information in its repository and codebook.
 
-The raw dataset is intentionally not committed to this repository. Running the ingestion step downloads the current public source. This avoids shipping a large third-party dataset and makes the data refresh explicit.
+See `docs/data_sources.md` for source notes and indicator definitions.
 
-For an interview, be ready to explain:
-- the exact source URL
-- retrieval date
-- selected fields and units
-- validation checks
-- why potential outliers were flagged instead of removed
-- why time-series validation was used
-- why the model should be treated as a research prototype rather than a market prediction engine
+## Methodology
+
+### Data quality
+
+The pipeline checks:
+
+- duplicate country-year keys
+- missing values
+- negative values in non-negative indicators
+- gaps in annual observations
+- potential IQR outliers
+
+Potential outliers are **flagged for review**, not silently deleted.
+
+### Forecasting
+
+The forecasting experiment compares:
+
+1. Naive last-value baseline
+2. Linear Regression
+3. Random Forest
+
+Evaluation uses **time-series cross-validation** rather than random shuffling.
+
+Metrics:
+- MAE
+- RMSE
+
+The current India electricity-demand run selects Linear Regression by the lowest mean cross-validation MAE.
+
+## Limitations
+
+- Public datasets do not reproduce proprietary commercial energy datasets.
+- Annual observations can be sparse for complex forecasting tasks.
+- Forecasts are research prototypes rather than production market forecasts.
+- Upstream data providers can revise historical observations.
+- Forecasts should not be interpreted as investment or market advice.
 
 ## Power BI
 
-A Power BI handoff guide is included in `powerbi/README.md`.
-
-The project exports flat analytical CSV files so they can be loaded into Power BI without changing the core Python pipeline.
-
-## Resume usage
-
-Do not list this project on a resume as completed until you have actually:
-1. run the pipeline,
-2. inspected the data,
-3. built the dashboard,
-4. validated the forecasts,
-5. pushed the code to GitHub, and
-6. can explain the implementation.
-
-See `docs/resume_bullets.md` for resume wording that becomes valid after those steps are completed.
-
-## Project limitations
-
-- Public data sources do not reproduce Rystad's proprietary commercial datasets.
-- Annual country-level observations are relatively sparse for sophisticated forecasting.
-- Forecasts are analytical demonstrations, not investment or commodity price advice.
-- Source datasets can change as upstream organizations publish revisions.
-- The project does not claim professional energy-market experience.
-
-## License and attribution
-
-The code in this repository can be licensed separately from the data.
-
-OWID states that its visualizations, data and code are open access under CC BY 4.0, while third-party data in its dataset may retain the original providers' license terms. Always review the current source licensing before redistributing data.
+The processed CSV exports can be loaded into Power BI.
 
 See:
-https://github.com/owid/energy-data
+
+```text
+powerbi/README.md
+```
+
+## Interview preparation
+
+The repository includes an interview guide covering:
+
+- Python pipeline design
+- data-quality validation
+- PostgreSQL schema design
+- SQL queries and indexing
+- time-series validation
+- MAE vs RMSE
+- model-selection reasoning
+- source traceability
+- limitations and research methodology
+
+See:
+
+```text
+docs/interview_guide.md
+```
+
+## Attribution
+
+Review the current licensing and attribution requirements for OWID and the underlying third-party data sources before redistributing source data.
+
+## Repository
+
+https://github.com/YuvarajRaghavann/energy-market-intelligence
